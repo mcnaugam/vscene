@@ -8,6 +8,13 @@ class Home extends Component {
     this.state = {
       meetings: [],
       users: [],
+      filter: "",
+    };
+  }
+
+  static getDerivedStateFromProps(nextProps, prevState) {
+    return {
+      filter: nextProps.search,
     };
   }
 
@@ -30,6 +37,10 @@ class Home extends Component {
     });
   }
 
+  handleChange = (event) => {
+    this.setState({ filter: event.target.value });
+  };
+
   getOwnerName = (meeting) => {
     const meetingOwner = this.state.users.find(
       (user) => meeting.owner === user.id
@@ -44,7 +55,7 @@ class Home extends Component {
   getTimePart = (date) => {};
 
   render() {
-    const meetings = this.state.meetings;
+    const { meetings, filter } = this.state;
 
     <div className="row">
       <div className="col s2">CALL ID</div>
@@ -55,7 +66,20 @@ class Home extends Component {
     </div>;
 
     if (meetings) {
-      var meetingItems = meetings.map((meeting) => (
+      const lowercasedFilter = filter.toLowerCase();
+      const filteredMeetings = meetings.filter((meeting) => {
+        return Object.keys(meeting).some((key) => {
+          if (key === "name") {
+            return meeting[key].toLowerCase().includes(lowercasedFilter);
+          } else if (key === "owner") {
+            return this.getOwnerName(meeting)
+              .toLowerCase()
+              .includes(lowercasedFilter);
+          }
+        });
+      });
+
+      var meetingItems = filteredMeetings.map((meeting) => (
         <div key={meeting.owner} className="row">
           <div className="col s2">{meeting.callid}</div>
           <div className="col s2">{this.getOwnerName(meeting)}</div>
